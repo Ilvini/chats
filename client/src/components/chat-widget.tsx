@@ -112,9 +112,8 @@ export default function ChatWidget({ chatRoom, userName, isEmbedded = false, cla
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Parse chat settings
+  // Parse chat settings (keeping for future use if needed)
   const settings = chatRoom.settings ? JSON.parse(chatRoom.settings) : {};
-  const welcomeMessage = settings.welcomeMessage || "Welcome to our chat! How can we help you today?";
 
   const formatTime = (date: Date | string) => {
     const d = new Date(date);
@@ -199,28 +198,6 @@ export default function ChatWidget({ chatRoom, userName, isEmbedded = false, cla
               </div>
             ) : (
               <div className="space-y-3">
-                {/* Welcome message */}
-                <div className="text-center">
-                  <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                    {userName} joined the chat
-                  </span>
-                </div>
-
-                {/* Welcome message from bot */}
-                <div className="flex items-start space-x-2">
-                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Bot className="w-3 h-3 text-primary-foreground" />
-                  </div>
-                  <div className="bg-card border border-border rounded-lg p-3 max-w-xs">
-                    <p className="text-sm text-foreground">
-                      Hello {userName}! {welcomeMessage}
-                    </p>
-                    <span className="text-xs text-muted-foreground mt-1 block">
-                      {formatTime(new Date())}
-                    </span>
-                  </div>
-                </div>
-
                 {/* Chat messages */}
                 {messages.map((msg) => (
                   <div

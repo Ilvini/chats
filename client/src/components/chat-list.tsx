@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Code, Settings, Trash2, Search, MessageSquare, ShoppingCart, GraduationCap } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Eye, Code, Settings, Trash2, Search, MessageSquare, ShoppingCart, GraduationCap, Play, Pause } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -44,6 +46,26 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
     },
   });
 
+  const toggleChatStatusMutation = useMutation({
+    mutationFn: async ({ chatId, newStatus }: { chatId: string; newStatus: string }) => {
+      return apiRequest('PUT', `/api/chatrooms/${chatId}`, { status: newStatus });
+    },
+    onSuccess: (data, { newStatus }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/chatrooms'] });
+      toast({
+        title: "Success",
+        description: `Chat ${newStatus === 'active' ? 'activated' : 'paused'} successfully`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update chat status",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDeleteChat = (chatId: string, chatName: string) => {
     if (window.confirm(`Are you sure you want to delete "${chatName}"? This action cannot be undone.`)) {
       deleteChatMutation.mutate(chatId);
@@ -52,6 +74,11 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
 
   const handleViewChat = (chatId: string) => {
     window.open(`/${chatId}?name=Admin`, '_blank');
+  };
+
+  const handleToggleChatStatus = (room: ChatRoomWithStats) => {
+    const newStatus = room.status === 'active' ? 'paused' : 'active';
+    toggleChatStatusMutation.mutate({ chatId: room.id, newStatus });
   };
 
   const getActivityTime = (createdAt: Date | string) => {
@@ -169,6 +196,25 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleChatStatus(room)}
+                      title={room.status === 'active' ? 'Pause Chat' : 'Activate Chat'}
+                      disabled={toggleChatStatusMutation.isPending}
+                      className={cn(
+                        room.status === 'active' 
+                          ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50" 
+                          : "text-green-600 hover:text-green-700 hover:bg-green-50"
+                      )}
+                      data-testid={`button-toggle-${room.id}`}
+                    >
+                      {room.status === 'active' ? (
+                        <Pause className="w-4 h-4" />
+                      ) : (
+                        <Play className="w-4 h-4" />
+                      )}
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
