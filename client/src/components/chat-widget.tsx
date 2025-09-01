@@ -38,15 +38,15 @@ export default function ChatWidget({ chatRoom, userName, isEmbedded = false, cla
           (oldMessages: Message[] = []) => [...oldMessages, data.message]
         );
       } else if (data.type === 'userJoined') {
-        toast({
-          description: `${data.userName} joined the chat`,
-          duration: 2000,
-        });
+        // toast({
+        //   description: `${data.userName} entrou no chat`,
+        //   duration: 2000,
+        // });
       } else if (data.type === 'userLeft') {
-        toast({
-          description: `${data.userName} left the chat`,
-          duration: 2000,
-        });
+        // toast({
+        //   description: `${data.userName} saiu do chat`,
+        //   duration: 2000,
+        // });
       } else if (data.type === 'typing') {
         setTypingUsers(prev => {
           if (!prev.includes(data.userName)) {
@@ -73,8 +73,8 @@ export default function ChatWidget({ chatRoom, userName, isEmbedded = false, cla
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to send message",
+        title: "Erro",
+        description: "Falha ao enviar mensagem",
         variant: "destructive",
       });
     },
@@ -170,7 +170,7 @@ export default function ChatWidget({ chatRoom, userName, isEmbedded = false, cla
             <div>
               <h4 className="font-medium text-sm">{chatRoom.name}</h4>
               <p className="text-xs opacity-90">
-                {isConnected ? "Online now" : "Connecting..."}
+                {isConnected ? "Online" : "Conectando..."}
               </p>
             </div>
           </div>
@@ -274,7 +274,7 @@ export default function ChatWidget({ chatRoom, userName, isEmbedded = false, cla
           <form onSubmit={handleSubmit} className="flex items-center space-x-2">
             <Input
               type="text"
-              placeholder="Type your message..."
+              placeholder="Digite sua mensagem..."
               value={message}
               onChange={(e) => {
                 setMessage(e.target.value);

@@ -44,14 +44,14 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chatrooms"] });
       toast({
-        title: "Success",
-        description: "Chat room deleted successfully",
+        title: "Sucesso",
+        description: "Sala de chat excluída com sucesso",
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to delete chat room",
+        title: "Erro",
+        description: "Falha ao excluir sala de chat",
         variant: "destructive",
       });
     },
@@ -72,16 +72,16 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
     onSuccess: (data, { newStatus }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/chatrooms"] });
       toast({
-        title: "Success",
+        title: "Sucesso",
         description: `Chat ${
-          newStatus === "active" ? "activated" : "paused"
-        } successfully`,
+          newStatus === "active" ? "ativado" : "pausado"
+        } com sucesso`,
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to update chat status",
+        title: "Erro",
+        description: "Falha ao atualizar status do chat",
         variant: "destructive",
       });
     },
@@ -90,7 +90,7 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
   const handleDeleteChat = (chatId: string, chatName: string) => {
     if (
       window.confirm(
-        `Are you sure you want to delete "${chatName}"? This action cannot be undone.`
+        `Tem certeza que deseja excluir "${chatName}"? Esta ação não pode ser desfeita.`
       )
     ) {
       deleteChatMutation.mutate(chatId);
@@ -112,10 +112,10 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
     const diffMs = now.getTime() - created.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
 
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins} min ago`;
-    if (diffMins < 1440) return `${Math.floor(diffMins / 60)} hour ago`;
-    return `${Math.floor(diffMins / 1440)} day ago`;
+    if (diffMins < 1) return "Agora mesmo";
+    if (diffMins < 60) return `${diffMins} min atrás`;
+    if (diffMins < 1440) return `${Math.floor(diffMins / 60)} hora atrás`;
+    return `${Math.floor(diffMins / 1440)} dia atrás`;
   };
 
   const getChatIcon = (name: string) => {
@@ -161,13 +161,13 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Your Chat Rooms</CardTitle>
+          <CardTitle className="text-lg">Suas Salas de Chat</CardTitle>
           <div className="flex items-center space-x-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Search chats..."
+                placeholder="Buscar chats..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-48"
@@ -181,8 +181,8 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
         {filteredChatRooms.length === 0 ? (
           <div className="p-6 text-center text-muted-foreground">
             {searchTerm
-              ? "No chats found matching your search."
-              : "No chat rooms created yet."}
+              ? "Nenhum chat encontrado para sua busca."
+              : "Nenhuma sala de chat criada ainda."}
           </div>
         ) : (
           <div className="divide-y divide-border">
@@ -204,10 +204,10 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
                       </div>
                       <div>
                         <h3 className="font-medium text-foreground">
-                          {room.name || "Unnamed Chat"}
+                          {room.name || "Chat sem nome"}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          {room.description || "No description"}
+                          {room.description || "Sem descrição"}
                         </p>
                         <div className="flex items-center space-x-4 mt-1">
                           <span className="text-xs text-muted-foreground">
@@ -231,15 +231,15 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
                               room.status.slice(1)}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
-                            Last activity: {getActivityTime(room.createdAt)}
+                            Última atividade: {getActivityTime(room.createdAt)}
                           </span>
                         </div>
                         <div className="flex items-center space-x-4 mt-1">
                           <span className="text-xs text-muted-foreground">
-                            {room.messageCount} messages
+                            {room.messageCount} mensagens
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {room.activeParticipants} active users
+                            {room.activeParticipants} usuários ativos
                           </span>
                         </div>
                       </div>

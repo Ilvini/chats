@@ -281,13 +281,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 isActive: true,
               });
 
-              // Create system message
-              await storage.createMessage({
-                chatRoomId: message.chatRoomId,
-                userName: "System",
-                content: `${message.userName} joined the chat`,
-                messageType: "system",
-              });
+              // Criar mensagem do sistema
+              // await storage.createMessage({
+              //   chatRoomId: message.chatRoomId,
+              //   userName: "Sistema",
+              //   content: `${message.userName} entrou no chat`,
+              //   messageType: "system",
+              // });
 
               // Broadcast to all clients in the same chat room
               broadcastToChatRoom(message.chatRoomId, {
@@ -302,13 +302,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (ws.chatRoomId && ws.userName) {
               await storage.removeParticipant(ws.chatRoomId, ws.userName);
 
-              // Create system message
-              await storage.createMessage({
-                chatRoomId: ws.chatRoomId,
-                userName: "System",
-                content: `${ws.userName} left the chat`,
-                messageType: "system",
-              });
+              // Criar mensagem do sistema
+              // await storage.createMessage({
+              //   chatRoomId: ws.chatRoomId,
+              //   userName: "Sistema",
+              //   content: `${ws.userName} saiu do chat`,
+              //   messageType: "system",
+              // });
 
               broadcastToChatRoom(ws.chatRoomId, {
                 type: "userLeft",
@@ -360,13 +360,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (ws.chatRoomId && ws.userName) {
         await storage.removeParticipant(ws.chatRoomId, ws.userName);
 
-        // Create system message
-        await storage.createMessage({
-          chatRoomId: ws.chatRoomId,
-          userName: "System",
-          content: `${ws.userName} left the chat`,
-          messageType: "system",
-        });
+        // Criar mensagem do sistema
+        // await storage.createMessage({
+        //   chatRoomId: ws.chatRoomId,
+        //   userName: "Sistema",
+        //   content: `${ws.userName} saiu do chat`,
+        //   messageType: "system",
+        // });
 
         broadcastToChatRoom(ws.chatRoomId, {
           type: "userLeft",

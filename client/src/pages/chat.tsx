@@ -9,12 +9,16 @@ export default function Chat() {
   const params = useParams();
   const chatId = params.chatId;
 
-  // Get user name from URL parameters
+  // Obter nome do usuário dos parâmetros da URL
   const urlParams = new URLSearchParams(window.location.search);
-  const userName = urlParams.get('name') || 'Anonymous';
+  const userName = urlParams.get("name") || "Anônimo";
 
-  const { data: chatRoom, isLoading, error } = useQuery<ChatRoom>({
-    queryKey: ['/api/chatrooms', chatId],
+  const {
+    data: chatRoom,
+    isLoading,
+    error,
+  } = useQuery<ChatRoom>({
+    queryKey: ["/api/chatrooms", chatId],
     enabled: !!chatId,
   });
 
@@ -23,7 +27,9 @@ export default function Chat() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Loading chat...</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Carregando chat...
+          </p>
         </div>
       </div>
     );
@@ -36,13 +42,16 @@ export default function Chat() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-4">
               <AlertTriangle className="h-8 w-8 text-destructive" />
-              <h1 className="text-2xl font-bold text-foreground">Chat Not Found</h1>
+              <h1 className="text-2xl font-bold text-foreground">
+                Chat não encontrado
+              </h1>
             </div>
             <p className="text-sm text-muted-foreground">
-              The chat room you're looking for doesn't exist or has been removed.
+              A sala de chat que você procura não existe ou foi removida.
             </p>
             <p className="text-xs text-muted-foreground mt-2">
-              Chat ID: <code className="bg-muted px-1 rounded">{chatId}</code>
+              ID do chat:{" "}
+              <code className="bg-muted px-1 rounded">{chatId}</code>
             </p>
           </CardContent>
         </Card>
@@ -50,15 +59,17 @@ export default function Chat() {
     );
   }
 
-  if (chatRoom.status === 'paused') {
+  if (chatRoom.status === "paused") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="text-center">
-              <h1 className="text-xl font-bold text-foreground mb-2">{chatRoom.name}</h1>
+              <h1 className="text-xl font-bold text-foreground mb-2">
+                {chatRoom.name}
+              </h1>
               <p className="text-sm text-muted-foreground">
-                This chat is currently paused. Please check back later.
+                Este chat está pausado no momento. Por favor, volte mais tarde.
               </p>
             </div>
           </CardContent>
@@ -69,11 +80,7 @@ export default function Chat() {
 
   return (
     <div className="min-h-screen bg-background">
-      <ChatWidget 
-        chatRoom={chatRoom} 
-        userName={userName}
-        isEmbedded={false}
-      />
+      <ChatWidget chatRoom={chatRoom} userName={userName} isEmbedded={false} />
     </div>
   );
 }
