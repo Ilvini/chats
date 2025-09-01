@@ -1,6 +1,8 @@
-import { users, chatRooms, messages, chatParticipants, type User, type InsertUser, type ChatRoom, type InsertChatRoom, type Message, type InsertMessage, type ChatParticipant, type InsertParticipant } from "@shared/schema";
-import { db } from "./db";
-import { eq, desc, and, count } from "drizzle-orm";
+import { 
+  type User, type InsertUser, type ChatRoom, type InsertChatRoom, 
+  type Message, type InsertMessage, type ChatParticipant, type InsertParticipant 
+} from "@shared/schema";
+import { randomUUID } from "crypto";
 
 export interface IStorage {
   // User methods (existing)
@@ -28,140 +30,136 @@ export interface IStorage {
 }
 
 
-export class DatabaseStorage implements IStorage {
+// In-memory storage for development
+export class MemStorage implements IStorage {
+  private users = new Map<string, User>();
+  private chatRooms = new Map<string, ChatRoom>();
+  private messages = new Map<string, Message[]>();
+  private participants = new Map<string, ChatParticipant[]>();
+
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    return this.users.get(id);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
+    for (const user of this.users.values()) {
+      if (user.username === username) {
+        return user;
+      }
+    }
+    return undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
+    const user = {
+      id: randomUUID(),
+      ...insertUser,
+      createdAt: new Date()
+    } as User;
+    this.users.set(user.id, user);
     return user;
   }
 
   // Chat room methods
   async getChatRoom(id: string): Promise<ChatRoom | undefined> {
-    const [chatRoom] = await db.select().from(chatRooms).where(eq(chatRooms.id, id));
-    return chatRoom || undefined;
+    return this.chatRooms.get(id);
   }
 
   async getAllChatRooms(): Promise<ChatRoom[]> {
-    return await db.select().from(chatRooms).orderBy(desc(chatRooms.createdAt));
+    return Array.from(this.chatRooms.values()).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   }
 
   async createChatRoom(insertChatRoom: InsertChatRoom): Promise<ChatRoom> {
-    const [chatRoom] = await db
-      .insert(chatRooms)
-      .values(insertChatRoom)
-      .returning();
+    const chatRoom = {
+      ...insertChatRoom,
+      createdAt: new Date()
+    } as ChatRoom;
+    this.chatRooms.set(chatRoom.id, chatRoom);
     return chatRoom;
   }
 
   async updateChatRoom(id: string, updates: Partial<ChatRoom>): Promise<ChatRoom | undefined> {
-    const [updatedRoom] = await db
-      .update(chatRooms)
-      .set(updates)
-      .where(eq(chatRooms.id, id))
-      .returning();
-    return updatedRoom || undefined;
+    const existing = this.chatRooms.get(id);
+    if (!existing) return undefined;
+    
+    const updated = { ...existing, ...updates };
+    this.chatRooms.set(id, updated);
+    return updated;
   }
 
   async deleteChatRoom(id: string): Promise<boolean> {
-    // Delete related data first
-    await db.delete(messages).where(eq(messages.chatRoomId, id));
-    await db.delete(chatParticipants).where(eq(chatParticipants.chatRoomId, id));
-    
-    const result = await db.delete(chatRooms).where(eq(chatRooms.id, id));
-    return result.rowCount ? result.rowCount > 0 : false;
+    const deleted = this.chatRooms.delete(id);
+    if (deleted) {
+      this.messages.delete(id);
+      this.participants.delete(id);
+    }
+    return deleted;
   }
 
   // Message methods
   async getMessages(chatRoomId: string, limit: number = 50): Promise<Message[]> {
-    return await db
-      .select()
-      .from(messages)
-      .where(eq(messages.chatRoomId, chatRoomId))
-      .orderBy(desc(messages.timestamp))
-      .limit(limit)
-      .then(msgs => msgs.reverse()); // Return in chronological order
+    const roomMessages = this.messages.get(chatRoomId) || [];
+    return roomMessages.slice(-limit);
   }
 
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const messageData = {
+    const message = {
+      id: randomUUID(),
       ...insertMessage,
-      messageType: insertMessage.messageType || 'user'
-    };
-    const [message] = await db
-      .insert(messages)
-      .values(messageData)
-      .returning();
+      messageType: insertMessage.messageType || 'user',
+      timestamp: new Date()
+    } as Message;
+    
+    const roomMessages = this.messages.get(insertMessage.chatRoomId) || [];
+    roomMessages.push(message);
+    this.messages.set(insertMessage.chatRoomId, roomMessages);
+    
     return message;
   }
 
   async getMessageCount(chatRoomId: string): Promise<number> {
-    const result = await db
-      .select({ count: count() })
-      .from(messages)
-      .where(eq(messages.chatRoomId, chatRoomId));
-    return result[0]?.count || 0;
+    return (this.messages.get(chatRoomId) || []).length;
   }
 
   // Participant methods
   async getParticipants(chatRoomId: string): Promise<ChatParticipant[]> {
-    return await db
-      .select()
-      .from(chatParticipants)
-      .where(eq(chatParticipants.chatRoomId, chatRoomId));
+    return this.participants.get(chatRoomId) || [];
   }
 
   async addParticipant(insertParticipant: InsertParticipant): Promise<ChatParticipant> {
-    // Remove existing participant with same name if exists
-    await db
-      .delete(chatParticipants)
-      .where(and(
-        eq(chatParticipants.chatRoomId, insertParticipant.chatRoomId),
-        eq(chatParticipants.userName, insertParticipant.userName)
-      ));
-
-    const participantData = {
+    const participant = {
+      id: randomUUID(),
       ...insertParticipant,
+      joinedAt: new Date(),
       isActive: insertParticipant.isActive ?? true
-    };
-    const [participant] = await db
-      .insert(chatParticipants)
-      .values(participantData)
-      .returning();
+    } as ChatParticipant;
+    
+    const roomParticipants = this.participants.get(insertParticipant.chatRoomId) || [];
+    
+    // Remove existing participant with same name
+    const filtered = roomParticipants.filter(p => p.userName !== insertParticipant.userName);
+    filtered.push(participant);
+    
+    this.participants.set(insertParticipant.chatRoomId, filtered);
     return participant;
   }
 
   async removeParticipant(chatRoomId: string, userName: string): Promise<boolean> {
-    const result = await db
-      .delete(chatParticipants)
-      .where(and(
-        eq(chatParticipants.chatRoomId, chatRoomId),
-        eq(chatParticipants.userName, userName)
-      ));
-    return result.rowCount ? result.rowCount > 0 : false;
+    const roomParticipants = this.participants.get(chatRoomId) || [];
+    const originalLength = roomParticipants.length;
+    
+    const filtered = roomParticipants.filter(p => p.userName !== userName);
+    this.participants.set(chatRoomId, filtered);
+    
+    return filtered.length < originalLength;
   }
 
   async getActiveParticipantCount(chatRoomId: string): Promise<number> {
-    const result = await db
-      .select({ count: count() })
-      .from(chatParticipants)
-      .where(and(
-        eq(chatParticipants.chatRoomId, chatRoomId),
-        eq(chatParticipants.isActive, true)
-      ));
-    return result[0]?.count || 0;
+    const roomParticipants = this.participants.get(chatRoomId) || [];
+    return roomParticipants.filter(p => p.isActive).length;
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();

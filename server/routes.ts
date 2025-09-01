@@ -2,8 +2,29 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertChatRoomSchema, insertMessageSchema, insertParticipantSchema } from "@shared/schema";
 import { z } from "zod";
+
+// Validation schemas
+const insertChatRoomSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  description: z.string().optional(),
+  status: z.string().default("active"),
+  settings: z.string().optional()
+});
+
+const insertMessageSchema = z.object({
+  chatRoomId: z.string().min(1),
+  userName: z.string().min(1),
+  content: z.string().min(1),
+  messageType: z.string().optional()
+});
+
+const insertParticipantSchema = z.object({
+  chatRoomId: z.string().min(1),
+  userName: z.string().min(1),
+  isActive: z.boolean().optional()
+});
 
 interface WebSocketMessage {
   type: 'join' | 'leave' | 'message' | 'typing';

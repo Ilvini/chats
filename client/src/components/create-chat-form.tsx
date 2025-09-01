@@ -9,12 +9,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { insertChatRoomSchema } from "@shared/schema";
 import { z } from "zod";
 
-const createChatSchema = insertChatRoomSchema.extend({
+const insertChatRoomSchema = z.object({
   id: z.string().min(1, "Chat ID is required").regex(/^[a-z0-9-]+$/, "ID must contain only lowercase letters, numbers, and hyphens"),
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  status: z.string().default("active"),
+  settings: z.string().optional()
 });
+
+const createChatSchema = insertChatRoomSchema;
 
 type CreateChatForm = z.infer<typeof createChatSchema>;
 
