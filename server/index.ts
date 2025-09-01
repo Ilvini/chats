@@ -1,6 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { connectToDatabase } from "./db";
+import { updateStorage } from "./storage";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -36,6 +38,10 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Try to connect to MongoDB and update storage accordingly
+  const mongoConnected = await connectToDatabase();
+  updateStorage(mongoConnected);
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
