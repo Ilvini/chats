@@ -4,7 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Eye, Code, Settings, Trash2, Search, MessageSquare, ShoppingCart, GraduationCap, Play, Pause } from "lucide-react";
+import {
+  Eye,
+  Code,
+  Settings,
+  Trash2,
+  Search,
+  MessageSquare,
+  ShoppingCart,
+  GraduationCap,
+  Play,
+  Pause,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -28,10 +39,10 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
 
   const deleteChatMutation = useMutation({
     mutationFn: async (chatId: string) => {
-      return apiRequest('DELETE', `/api/chatrooms/${chatId}`);
+      return apiRequest("DELETE", `/api/chatrooms/${chatId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/chatrooms'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chatrooms"] });
       toast({
         title: "Success",
         description: "Chat room deleted successfully",
@@ -47,14 +58,24 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
   });
 
   const toggleChatStatusMutation = useMutation({
-    mutationFn: async ({ chatId, newStatus }: { chatId: string; newStatus: string }) => {
-      return apiRequest('PUT', `/api/chatrooms/${chatId}`, { status: newStatus });
+    mutationFn: async ({
+      chatId,
+      newStatus,
+    }: {
+      chatId: string;
+      newStatus: string;
+    }) => {
+      return apiRequest("PUT", `/api/chatrooms/${chatId}`, {
+        status: newStatus,
+      });
     },
     onSuccess: (data, { newStatus }) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/chatrooms'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chatrooms"] });
       toast({
         title: "Success",
-        description: `Chat ${newStatus === 'active' ? 'activated' : 'paused'} successfully`,
+        description: `Chat ${
+          newStatus === "active" ? "activated" : "paused"
+        } successfully`,
       });
     },
     onError: () => {
@@ -67,17 +88,21 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
   });
 
   const handleDeleteChat = (chatId: string, chatName: string) => {
-    if (window.confirm(`Are you sure you want to delete "${chatName}"? This action cannot be undone.`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to delete "${chatName}"? This action cannot be undone.`
+      )
+    ) {
       deleteChatMutation.mutate(chatId);
     }
   };
 
   const handleViewChat = (chatId: string) => {
-    window.open(`/${chatId}?name=Admin`, '_blank');
+    window.open(`/${chatId}?name=Admin`, "_blank");
   };
 
   const handleToggleChatStatus = (room: ChatRoomWithStats) => {
-    const newStatus = room.status === 'active' ? 'paused' : 'active';
+    const newStatus = room.status === "active" ? "paused" : "active";
     toggleChatStatusMutation.mutate({ chatId: room.id, newStatus });
   };
 
@@ -86,7 +111,7 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
     const created = new Date(createdAt);
     const diffMs = now.getTime() - created.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
-    
+
     if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins} min ago`;
     if (diffMins < 1440) return `${Math.floor(diffMins / 60)} hour ago`;
@@ -94,37 +119,42 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
   };
 
   const getChatIcon = (name: string) => {
+    if (!name) return <MessageSquare className="w-4 h-4" />;
     const lowerName = name.toLowerCase();
-    if (lowerName.includes('support') || lowerName.includes('customer')) {
+    if (lowerName.includes("support") || lowerName.includes("customer")) {
       return <MessageSquare className="w-4 h-4" />;
     }
-    if (lowerName.includes('sales') || lowerName.includes('inquiry')) {
+    if (lowerName.includes("sales") || lowerName.includes("inquiry")) {
       return <ShoppingCart className="w-4 h-4" />;
     }
-    if (lowerName.includes('course') || lowerName.includes('help')) {
+    if (lowerName.includes("course") || lowerName.includes("help")) {
       return <GraduationCap className="w-4 h-4" />;
     }
     return <MessageSquare className="w-4 h-4" />;
   };
 
   const getIconColor = (name: string) => {
+    if (!name) return "bg-primary/10 text-primary";
     const lowerName = name.toLowerCase();
-    if (lowerName.includes('support') || lowerName.includes('customer')) {
+    if (lowerName.includes("support") || lowerName.includes("customer")) {
       return "bg-primary/10 text-primary";
     }
-    if (lowerName.includes('sales') || lowerName.includes('inquiry')) {
+    if (lowerName.includes("sales") || lowerName.includes("inquiry")) {
       return "bg-green-100 text-green-600";
     }
-    if (lowerName.includes('course') || lowerName.includes('help')) {
+    if (lowerName.includes("course") || lowerName.includes("help")) {
       return "bg-purple-100 text-purple-600";
     }
     return "bg-primary/10 text-primary";
   };
 
-  const filteredChatRooms = chatRooms.filter(room =>
-    room.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    room.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (room.description && room.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredChatRooms = chatRooms.filter(
+    (room) =>
+      (room.name &&
+        room.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (room.id && room.id.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (room.description &&
+        room.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -150,35 +180,55 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
       <CardContent className="p-0">
         {filteredChatRooms.length === 0 ? (
           <div className="p-6 text-center text-muted-foreground">
-            {searchTerm ? "No chats found matching your search." : "No chat rooms created yet."}
+            {searchTerm
+              ? "No chats found matching your search."
+              : "No chat rooms created yet."}
           </div>
         ) : (
           <div className="divide-y divide-border">
             {filteredChatRooms.map((room) => (
-              <div 
-                key={room.id} 
+              <div
+                key={room.id}
                 className="p-6 hover:bg-muted/50 transition-colors"
                 data-testid={`chat-room-${room.id}`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${getIconColor(room.name)}`}>
-                        {getChatIcon(room.name)}
+                      <div
+                        className={`p-2 rounded-lg ${getIconColor(
+                          room.name || ""
+                        )}`}
+                      >
+                        {getChatIcon(room.name || "")}
                       </div>
                       <div>
-                        <h3 className="font-medium text-foreground">{room.name}</h3>
-                        <p className="text-sm text-muted-foreground">{room.description}</p>
+                        <h3 className="font-medium text-foreground">
+                          {room.name || "Unnamed Chat"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {room.description || "No description"}
+                        </p>
                         <div className="flex items-center space-x-4 mt-1">
                           <span className="text-xs text-muted-foreground">
-                            ID: <code className="bg-muted px-1 rounded font-mono">{room.id}</code>
+                            ID:{" "}
+                            <code className="bg-muted px-1 rounded font-mono">
+                              {room.id}
+                            </code>
                           </span>
-                          <Badge 
-                            variant={room.status === 'active' ? 'default' : room.status === 'paused' ? 'secondary' : 'destructive'}
+                          <Badge
+                            variant={
+                              room.status === "active"
+                                ? "default"
+                                : room.status === "paused"
+                                ? "secondary"
+                                : "destructive"
+                            }
                             className="text-xs"
                           >
-                            {room.status === 'active' && '● '}
-                            {room.status.charAt(0).toUpperCase() + room.status.slice(1)}
+                            {room.status === "active" && "● "}
+                            {room.status.charAt(0).toUpperCase() +
+                              room.status.slice(1)}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
                             Last activity: {getActivityTime(room.createdAt)}
@@ -200,16 +250,20 @@ export default function ChatList({ chatRooms, onGetEmbedCode }: ChatListProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleToggleChatStatus(room)}
-                      title={room.status === 'active' ? 'Pause Chat' : 'Activate Chat'}
+                      title={
+                        room.status === "active"
+                          ? "Pause Chat"
+                          : "Activate Chat"
+                      }
                       disabled={toggleChatStatusMutation.isPending}
                       className={cn(
-                        room.status === 'active' 
-                          ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50" 
+                        room.status === "active"
+                          ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                           : "text-green-600 hover:text-green-700 hover:bg-green-50"
                       )}
                       data-testid={`button-toggle-${room.id}`}
                     >
-                      {room.status === 'active' ? (
+                      {room.status === "active" ? (
                         <Pause className="w-4 h-4" />
                       ) : (
                         <Play className="w-4 h-4" />
